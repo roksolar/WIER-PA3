@@ -10,9 +10,10 @@ def indexer():
     html_list = []
     for root, dirs, files in os.walk('../input'):
          for file in files:
-            with open(os.path.join(root, file), "r", encoding='utf8', errors='ignore') as f:
-                html = f.read()
-                print(file + ": " + str(process_text(html)))
+            if file.endswith("html"):
+                with open(os.path.join(root, file), "r", encoding='utf8', errors='ignore') as f:
+                    html = f.read()
+                    print(file + ": " + str(process_text(html)))
     return html_list
 
 
