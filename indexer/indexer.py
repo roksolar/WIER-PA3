@@ -1,4 +1,5 @@
 import os
+import sqlite3
 
 def indexer():
     html_list = []
@@ -8,3 +9,23 @@ def indexer():
                 file_contents = f.read()
                 html_list.append(file_contents)
     return html_list
+
+
+def write_to_index_word(word):
+    conn = sqlite3.connect('../inverted-index.db')
+    c = conn.cursor()
+    sql = "INSERT INTO IndexWord VALUES (?)"
+    c.execute(sql, (word,))
+    conn.commit()
+    conn.close()
+
+def write_to_index_posting(word, document, frequency, index):
+    conn = sqlite3.connect('../inverted-index.db')
+    c = conn.cursor()
+    sql = "INSERT INTO Posting VALUES  (?,?,?,?)"
+    c.execute(sql, (word, document, frequency, index,))
+    conn.commit()
+    conn.close()
+
+
+
