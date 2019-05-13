@@ -7,15 +7,34 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
 def indexer():
-    html_list = []
     for root, dirs, files in os.walk('../input'):
          for file in files:
             if file.endswith("html"):
                 with open(os.path.join(root, file), "r", encoding='utf8', errors='ignore') as f:
                     html = f.read()
-                    print(file + ": " + str(process_text(html)))
-    return html_list
+                    word_list = process_text(html)
+                    unique_word_list = []
+                    for word in word_list:
+                        try:
+                            write_to_index_word(word)
+                        except Exception as e:
+                            pass
+                        if word not in unique_word_list:
+                            generate_posting(word, word_list, file)
+                            unique_word_list.append(word)
 
+def generate_posting(word,word_list, file):
+    index = []
+    count_frequency = 0
+    for i, element in enumerate(word_list):
+        if element == word:
+            index.append(i)
+            count_frequency += 1
+
+    try:
+        write_to_index_posting(word, file, count_frequency, str(index)[1:len(str(index))-1])
+    except Exception as e:
+        pass
 
 def write_to_index_word(word):
     conn = sqlite3.connect('../inverted-index.db')
