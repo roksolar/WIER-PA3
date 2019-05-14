@@ -62,13 +62,18 @@ def process_text(html):
     return get_words(visible_texts)
 
 
+def process_word(word):
+    # Remove punctuation, to lower
+    word = word.strip(string.punctuation).lower()
+    # Add word if not empty and not a stopword
+    if word != '' and word not in stop_words_slovene:
+        return word
+    return ''
+
+
 def get_words(list_of_texts):
     words = []
     for text in list_of_texts:
         for word in word_tokenize(text):
-            # Remove punctuation, to lower
-            word = word.strip(string.punctuation).lower()
-            # Add word if not empty and not a stopword
-            if word != '' and word not in stop_words_slovene:
-                words.append(word)
+            words.append(word)
     return words

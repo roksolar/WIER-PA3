@@ -1,5 +1,65 @@
+import os
 import sqlite3
-from text_processor import get_words
+from text_processor import get_words, process_word, process_text
+import time
+
+
+#------------------- INSERT QUERY HERE -------------------------------
+query = "št"
+#---------------------------------------------------------------------
+
+
+def generate_snippet(word_list, indexes):
+    snippet = ""
+    for i in indexes:
+        if i+4 <= len(word_list):
+            if i >= 3:
+                snippet += "... " + " ".join(word_list[i - 3:i + 4]).replace(" ,", ",") + " ..."
+            elif i == 2:
+                snippet += "... " + " ".join(word_list[i - 2:i + 4]).replace(" ,", ",") + " ..."
+            elif i == 1:
+                snippet += "... " + " ".join(word_list[i - 1:i + 4]).replace(" ,", ",") + " ..."
+            else:
+                snippet += "".join(word_list[i:i + 3]) + "..."
+        elif i+3 <= len(word_list):
+            if i >= 3:
+                snippet += "... " + " ".join(word_list[i - 3:i + 3]).replace(" ,", ",") + " ..."
+            elif i == 2:
+                snippet += "... " + " ".join(word_list[i - 2:i + 3]).replace(" ,", ",") + " ..."
+            elif i == 1:
+                snippet += "... " + " ".join(word_list[i - 1:i + 3]).replace(" ,", ",") + " ..."
+            else:
+                snippet += "".join(word_list[i:i + 3]) + "..."
+        elif i+2 <= len(word_list):
+            if i >= 3:
+                snippet += "... " + " ".join(word_list[i - 3:i + 2]).replace(" ,", ",") + " ..."
+            elif i == 2:
+                snippet += "... " + " ".join(word_list[i - 2:i + 2]).replace(" ,", ",") + " ..."
+            elif i == 1:
+                snippet += "... " + " ".join(word_list[i - 1:i + 2]).replace(" ,", ",") + " ..."
+            else:
+                snippet += "".join(word_list[i:i + 3]) + "..."
+        elif i+1 <= len(word_list):
+            if i >= 3:
+                snippet += "... " + " ".join(word_list[i - 3:i + 1]).replace(" ,", ",") + " ..."
+            elif i == 2:
+                snippet += "... " + " ".join(word_list[i - 2:i + 1]).replace(" ,", ",") + " ..."
+            elif i == 1:
+                snippet += "... " + " ".join(word_list[i - 1:i + 1]).replace(" ,", ",") + " ..."
+            else:
+                snippet += "".join(word_list[i:i + 3]) + "..."
+        else:
+            if i >= 3:
+                snippet += "... " + " ".join(word_list[i - 3:i]).replace(" ,", ",") + " ..."
+            elif i == 2:
+                snippet += "... " + " ".join(word_list[i - 2:i]).replace(" ,", ",") + " ..."
+            elif i == 1:
+                snippet += "... " + " ".join(word_list[i - 1:i]).replace(" ,", ",") + " ..."
+            else:
+                snippet += "".join(word_list[i:i + 3]) + "..."
+    snippet = snippet.replace("......", "...")
+    return snippet
+
 
 def get_results(query):
     conn = sqlite3.connect('../inverted-index.db')
@@ -13,14 +73,38 @@ def get_results(query):
         ORDER BY freq DESC;'''.format(seq=','.join(['?']*len(query)))
     cursor = c.execute(sql, query)
     for row in cursor:
-        print("\tHits: %d\n\t\tDoc: '%s'\n\t\tIndexes: %s" % (row[1], row[0], row[2]))
+        # Find correct path
+        path ='../input/e-prostor.gov.si/'+row[0]
+        if(not os.path.isfile(path)):
+            path = '../input/e-uprava.gov.si/' + row[0]
+            if (not os.path.isfile(path)):
+                path = '../input/evem.gov.si/' + row[0]
+                if (not os.path.isfile(path)):
+                    path = '../input/podatki.gov.si/' + row[0]
 
-query = ['test.,','in', 'spot']
-print(query)
-query = get_words(query)
-print(query)
-get_results(['test','spot'])
+        with open(path, "r", encoding='utf8', errors='ignore') as f:
+            html = f.read()
+            word_list = process_text(html)
+            indexes = [int(s) for s in row[2].split(',')]
+            snippet = generate_snippet(word_list, indexes)
+            print("%d\t\t\t %s\t\t\t\t\t%s" % (row[1], row[0], snippet))
 
+
+start_time = time.time()
+print("Results for a query: \'" + query  +"\'")
+query = query.split()
+processed_query = []
+for word in get_words(query):
+    word = process_word(word)
+    if word != "":
+        processed_query.append(word)
+
+#print("Cleaned query: " + str(processed_query))
+print()
+print("Frequencies Document                                  Snippet")
+print("----------- ----------------------------------------- -----------------------------------------------------------")
+get_results(processed_query)
+print("\n\nResults found in %s seconds." % (time.time() - start_time))
 
 '''
 def get_doc(word):

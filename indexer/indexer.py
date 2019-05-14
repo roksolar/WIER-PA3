@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from text_processor import process_text
+from text_processor import process_text, process_word
 
 
 def indexer():
@@ -9,23 +9,27 @@ def indexer():
          for file in files:
             if file.endswith("html"):
                 with open(os.path.join(root, file), "r", encoding='utf8', errors='ignore') as f:
+                    print(file)
                     html = f.read()
                     word_list = process_text(html)
                     unique_word_list = []
                     for word in word_list:
-                        try:
-                            write_to_index_word(word)
-                        except Exception as e:
-                            pass
-                        if word not in unique_word_list:
-                            generate_posting(word, word_list, file)
-                            unique_word_list.append(word)
+                        word = process_word(word)
+                        if word != "":
+                            try:
+                                write_to_index_word(word)
+                            except Exception as e:
+                                pass
+                            if word not in unique_word_list:
+                                generate_posting(word, word_list, file)
+                                unique_word_list.append(word)
 
 
 def generate_posting(word,word_list, file):
     index = []
     count_frequency = 0
     for i, element in enumerate(word_list):
+        element = process_word(element)
         if element == word:
             index.append(i)
             count_frequency += 1
