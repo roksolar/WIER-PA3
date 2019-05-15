@@ -5,13 +5,16 @@ import time
 
 
 #------------------- INSERT QUERY HERE -------------------------------
-query = "št"
+query = "predelovalne dejavnosti"
 #---------------------------------------------------------------------
 
 
 def generate_snippet(word_list, indexes):
     snippet = ""
     for i in indexes:
+        if len(snippet) > 200:
+            snippet = snippet.replace("......", "...")
+            return snippet
         if i+4 <= len(word_list):
             if i >= 3:
                 snippet += "... " + " ".join(word_list[i - 3:i + 4]).replace(" ,", ",") + " ..."
