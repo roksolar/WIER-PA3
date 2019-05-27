@@ -3,10 +3,51 @@ import sqlite3
 from text_processor import get_words, process_word, process_text
 import time
 
-
 #------------------- INSERT QUERY HERE -------------------------------
-query = "predelovalne dejavnosti"
+query = "sistem spot"
 #---------------------------------------------------------------------
+
+results = {}
+results_s = {}
+
+def search_seq(query):
+    file_index = 0
+    for root, dirs, files in os.walk('../input/'):
+         for file in files:
+            if file.endswith("html"):
+                with open(os.path.join(root, file), "r", encoding='utf8', errors='ignore') as f:
+                    html = f.read()
+                    word_list = process_text(html)
+                    counter = 0
+                    word_index = 0
+                    index_list = []
+                    for word in word_list:
+                        word = process_word(word)
+                        if word != "":
+                            if word in query:
+                                counter = counter + 1
+                                index_list.append(word_index)
+                        word_index = word_index + 1
+
+                results_s[file_index] = [counter, file, index_list]
+                file_index = file_index + 1
+
+def get_results_s(sorted_results):
+    # Find correct path
+    for value in sorted_results:
+        path = '../input/e-prostor.gov.si/' + value[1]
+        if (not os.path.isfile(path)):
+            path = '../input/e-uprava.gov.si/' + value[1]
+            if (not os.path.isfile(path)):
+                path = '../input/evem.gov.si/' + value[1]
+                if (not os.path.isfile(path)):
+                    path = '../input/podatki.gov.si/' + value[1]
+
+        with open(path, "r", encoding='utf8', errors='ignore') as f:
+            html = f.read()
+            word_list = process_text(html)
+            snippet = generate_snippet(word_list, value[2])
+            print("%d\t\t\t %s\t\t\t\t\t%s" % (value[0], value[1], snippet))
 
 
 def generate_snippet(word_list, indexes):
@@ -107,6 +148,17 @@ print()
 print("Frequencies Document                                  Snippet")
 print("----------- ----------------------------------------- -----------------------------------------------------------")
 get_results(processed_query)
+print("\n\nResults found in %s seconds." % (time.time() - start_time))
+
+start_time = time.time()
+#print("Cleaned query: " + str(processed_query))
+print()
+print("Frequencies Document                                  Snippet")
+print("----------- ----------------------------------------- -----------------------------------------------------------")
+search_seq(processed_query)
+sorted_results = sorted(results_s.values(), key=lambda kv: kv[0],reverse=True)
+print(sorted_results)
+get_results_s(sorted_results)
 print("\n\nResults found in %s seconds." % (time.time() - start_time))
 
 '''
